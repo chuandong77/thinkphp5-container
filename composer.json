@@ -1,5 +1,5 @@
 {
-    "name": "gjc/thinkphp-container",
+    "name": "gjc/thinkphp5-container",
     "autoload": {
         "psr-4": {
             "Gjc\\ThinkphpContainer\\": "src/"
