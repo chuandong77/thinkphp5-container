@@ -2,7 +2,7 @@
     "name": "gjc/thinkphp5-container",
     "autoload": {
         "psr-4": {
-            "Gjc\\ThinkphpContainer\\": "src/"
+            "Gjc\\ThinkPHP5\\Container\\": "src/"
         },
         "files": [
             "src/helpers.php",
