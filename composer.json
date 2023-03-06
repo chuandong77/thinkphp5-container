@@ -5,7 +5,8 @@
             "Gjc\\ThinkphpContainer\\": "src/"
         },
         "files": [
-            "app/helpers.php"
+            "src/helpers.php",
+            "src/Service/common.php"
         ]
     },
     "authors": [
