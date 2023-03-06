@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Gjc\ThinkPHP5\Container\Command;
+namespace Gjc\ThinkPHP5\Container\Service\Command;
 
 use think\App;
 use think\Config;
@@ -12,30 +12,54 @@ use think\console\Output;
 
 class Service extends Command
 {
+    protected $type = [
+        'controller',
+        'model',
+        'service',
+    ];
+
     protected function configure()
     {
-        $this->setName('make:service')->setDescription('本命令可一键创建api的controller，model，service');
+        $this->setName('make:service')->setDescription('本命令可一键创建FastAdmin api的controller，model，service');
         $this->addArgument('name', Argument::REQUIRED, "The name of the class");
     }
 
     protected function execute(Input $input, Output $output)
     {
-
         $name = trim($input->getArgument('name'));
 
         $className = $this->getClassName($name);
-        file_put_contents($this->buildControllerPath($className), $this->buildControllerClass($className));
-        $output->writeln("创建 controller/{$name}.php 成功");
 
-        file_put_contents($this->buildModelPath($className), $this->buildModelClass($className));
-        $output->writeln("创建 model/{$name}.php 成功");
+        if ($this->fileExists($name)) {
+            return false;
+        };
 
-        file_put_contents($this->buildServicePath($className), $this->buildServiceClass($className));
-        $output->writeln("创建 services/{$name}Service.php 成功");
+        foreach ($this->type as $type) {
+            $pathname = $this->getPathName($className, $type);
+            if (!is_dir(dirname($pathname))) {
+                mkdir(dirname($pathname), 0755, true);
+            }
+
+            file_put_contents($pathname, $this->buildClassContent($className, $type));
+            $output->writeln("创建 $type 成功");
+        }
 
         $this->updateBaseServiceCode($className);
         $output->writeln('更新 BaseService 成功');
         $output->writeln('操作完成');
+    }
+
+    protected function fileExists($className)
+    {
+        foreach ($this->type as $type) {
+            $pathname = $this->getPathName($className, $type);
+            if (is_file($pathname)) {
+                $this->output->writeln('<error>' . $className . ' ' . ucwords($type) . ' already exists!</error>');
+                return true;
+            }
+        }
+
+        return false;
     }
 
     protected function getClassName($name)
@@ -51,9 +75,34 @@ class Service extends Command
         ], $stub);
     }
 
-    protected function buildControllerPath($className)
+    protected function getPathName($className, $type)
     {
-        return APP_PATH . '/api/controller/' . $className . '.php';
+        switch ($type) {
+            case 'controller':
+                return APP_PATH . 'api/controller/' . $className . '.php';
+                break;
+            case 'model':
+                return APP_PATH . 'common/model/' . $className . '.php';
+                break;
+            case 'service':
+                return APP_PATH . 'services/' . $className. 'Service.php';
+                break;
+        }
+    }
+
+    protected function buildClassContent($name, $type)
+    {
+        switch ($type) {
+            case 'controller':
+                return $this->buildControllerClass($name);
+                break;
+            case 'model':
+                return $this->buildModelClass($name);
+                break;
+            case 'service':
+                return $this->buildServiceClass($name);
+                break;
+        }
     }
 
     protected function buildModelClass($name)
@@ -64,22 +113,12 @@ class Service extends Command
         ], $stub);
     }
 
-    protected function buildModelPath($className)
-    {
-        return APP_PATH . '/common/model/' . $className . '.php';
-    }
-
     protected function buildServiceClass($name)
     {
         $stub = file_get_contents(__DIR__ . '/stubs/service.stub');
         return str_replace(['{%className%}'], [
             $name,
         ], $stub);
-    }
-
-    protected function buildServicePath($className)
-    {
-        return APP_PATH . '/services/' . $className. 'Service.php';
     }
 
     /**
@@ -109,7 +148,11 @@ class Service extends Command
 
     //{%add function code%}";
 
-        $path = APP_PATH . '/services/BaseService.php';
+        $path = APP_PATH . 'services/BaseService.php';
+        if (!is_file($path)) {
+            $this->buildBaseService($path);
+        }
+
         $service = file_get_contents($path);
         $content = str_replace(['//{%add use model%}', '//{%add function code%}'], [
             $useCode,
@@ -117,5 +160,13 @@ class Service extends Command
         ], $service);
 
         file_put_contents($path, $content);
+    }
+
+    protected function buildBaseService($pathName)
+    {
+        $stub = file_get_contents(__DIR__ . '/stubs/baseService.stub');
+        file_put_contents($pathName, $stub);
+
+        return true;
     }
 }
