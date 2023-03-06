@@ -1,0 +1,20 @@
+{
+    "name": "gjc/thinkphp-container",
+    "autoload": {
+        "psr-4": {
+            "Gjc\\ThinkphpContainer\\": "src/"
+        },
+        "files": [
+            "app/helpers.php"
+        ]
+    },
+    "authors": [
+        {
+            "name": "gjc",
+            "email": "wyemail666@163.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0"
+    }
+}
