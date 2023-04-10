@@ -143,7 +143,7 @@ class Service extends Command
      */
     protected function get{$className}Model()
     {
-        return app({$className}::class);
+        return app({$className}::class, true);
     }
 
     //{%add function code%}";
